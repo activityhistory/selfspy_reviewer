@@ -191,7 +191,7 @@ class ReviewController(NSWindowController):
                 print "Audio name should be " + imageName
                 if (imageName == None) | (imageName == ''):
                     imageName = datetime.datetime.now().strftime("%y%m%d-%H%M%S%f") + '-audio'
-                imageName = str(os.path.join('/Volumes/SELFSPY', "audio/")) + imageName + '.m4a'
+                imageName = str(os.path.join('/Volumes/SELFSPY', "audio/")) + imageName + '-week.m4a'
                 self.audio_file = imageName
                 imageName = string.replace(imageName, "/", ":")
                 imageName = imageName[1:]
