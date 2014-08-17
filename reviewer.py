@@ -129,7 +129,7 @@ class ReviewController(NSWindowController):
         cueImage = NSImage.alloc().initByReferencingFile_(path)
         max_height = min(cueImage.size().height, self.viewH)
 
-        if(self.cueH < max_height-20 and self.growImage):
+        if(self.cueH <= max_height-20 and self.growImage):
             print 'increasing size'
             self.cueH = self.cueH + 20
             self.cueW = self.cueH * self.cueRatio
