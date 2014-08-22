@@ -103,3 +103,45 @@ class Cue(SpookMixin, Base):
 
     def __repr__(self):
         return "<Cue(screenshot = '%s', snippet='%s', activity_size='%s')>" % (self.screenshot, self.snippet, self.activity_size)
+
+class Animation(SpookMixin, Base):
+
+    experience_id = Column(Integer, ForeignKey('experience.id'), nullable=False, index=True)
+    experience = relationship("Experience", backref=backref('animation'))
+    debrief_id = Column(Integer, ForeignKey('debrief.id'), nullable=False, index=True)
+    debrief = relationship("Debrief", backref=backref('animation'))
+    screenshot = Column(Unicode, index=True)
+    snippet = Column(Boolean)
+    project_size = Column(Integer)
+    project_frames = Column(Integer)
+    project_time = Column(Float)
+    activity_size = Column(Integer)
+    activity_frames = Column(Integer)
+    activity_time = Column(Float)
+    audio_file = Column(Unicode, index=True)
+    doing_report = Column(Unicode, index=True)
+    features = Column(Unicode, index=True)
+    memory_strength = Column(Integer, index=True)
+    image_aptness = Column(Integer, index=True)
+    activity = Column(Unicode, index=True)
+
+    def __init__(self, experience_id, debrief_id, screenshot, snippet, project_size, project_frames, project_time, activity_size, activity_frames, activity_time, audio_file, doing_report, features, memory_strength, image_aptness, activity):
+        self.experience_id = experience_id
+        self.debrief_id = debrief_id
+        self.screenshot = screenshot
+        self.snippet = snippet
+        self.project_size = project_size
+        self.project_frames = project_frames
+        self.project_time = project_time
+        self.activity_size = activity_size
+        self.activity_frames = activity_frames
+        self.activity_time = activity_time
+        self.audio_file = audio_file
+        self.doing_report = doing_report
+        self.features = features
+        self.memory_strength = memory_strength
+        self.image_aptness = image_aptness
+        self.activity = activity
+
+    def __repr__(self):
+        return "<Animation(screenshot = '%s', snippet='%s', activity_size='%s')>" % (self.screenshot, self.snippet, self.activity_size)

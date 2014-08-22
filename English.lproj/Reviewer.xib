@@ -7,7 +7,7 @@
         <customObject id="-2" userLabel="File's Owner" customClass="ReviewController">
             <connections>
                 <outlet property="activityText" destination="NQE-AT-IvX" id="fM7-Rw-nGk"/>
-                <outlet property="controlView" destination="wX5-uW-KLT" id="fOp-fL-DIh"/>
+                <outlet property="controlView" destination="wX5-uW-KLT" id="jLo-tA-v28"/>
                 <outlet property="dataView" destination="BLA-xH-A6q" id="bUa-bV-c4K"/>
                 <outlet property="deleteAudioButton" destination="9cU-vc-wUa" id="ltQ-pE-mJF"/>
                 <outlet property="doingText" destination="EcU-xD-byN" id="DhU-RN-UHG"/>
@@ -37,12 +37,54 @@
                 <rect key="frame" x="0.0" y="0.0" width="949" height="700"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
-                    <imageView autoresizesSubviews="NO" horizontalHuggingPriority="750" verticalHuggingPriority="750" ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="c21-GK-PHL">
-                        <rect key="frame" x="17" y="83" width="640" height="400"/>
+                    <customView ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="wX5-uW-KLT">
+                        <rect key="frame" x="760" y="606" width="193" height="94"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <subviews>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="KdT-uj-sO9">
+                                <rect key="frame" x="14" y="13" width="84" height="32"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="push" title="Project" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="gt1-sP-m6s">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                    <string key="keyEquivalent">p</string>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="recordProjectSize:" target="-2" id="bkS-3z-u9g"/>
+                                </connections>
+                            </button>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="QQC-YH-0lw">
+                                <rect key="frame" x="92" y="13" width="87" height="32"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="push" title="Activity" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Wvc-0z-Knd">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                    <string key="keyEquivalent">a</string>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="stopAnimation:" target="-2" id="ORN-gF-z8y"/>
+                                </connections>
+                            </button>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="eOS-Fk-IsV">
+                                <rect key="frame" x="14" y="46" width="165" height="32"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="push" title="Start" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="ea7-LY-ylC">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                    <string key="keyEquivalent">s</string>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="startAnimation:" target="-2" id="p79-eG-RE9"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                    </customView>
+                    <imageView autoresizesSubviews="NO" horizontalHuggingPriority="750" verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="c21-GK-PHL">
+                        <rect key="frame" x="47" y="69" width="954" height="594"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" imageFrameStyle="grayBezel" id="Gra-l8-vcC"/>
+                        <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" imageFrameStyle="photo" id="Gra-l8-vcC"/>
                     </imageView>
-                    <textField hidden="YES" horizontalHuggingPriority="251" verticalHuggingPriority="750" ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="OLR-Ww-MGY">
+                    <textField hidden="YES" horizontalHuggingPriority="251" verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="OLR-Ww-MGY">
                         <rect key="frame" x="28" y="375" width="379" height="17"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="You have no Experience Samples from today to be reviewed" id="eVe-0P-mx1">
@@ -274,59 +316,18 @@
                             <constraint firstAttribute="height" constant="700" id="od6-bx-zc2"/>
                         </constraints>
                     </customView>
-                    <customView ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="wX5-uW-KLT">
-                        <rect key="frame" x="713" y="586" width="193" height="94"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                        <subviews>
-                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="KdT-uj-sO9">
-                                <rect key="frame" x="14" y="13" width="84" height="32"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="push" title="Project" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="gt1-sP-m6s">
-                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                    <font key="font" metaFont="system"/>
-                                    <string key="keyEquivalent">p</string>
-                                </buttonCell>
-                                <connections>
-                                    <action selector="recordProjectSize:" target="-2" id="bkS-3z-u9g"/>
-                                </connections>
-                            </button>
-                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="QQC-YH-0lw">
-                                <rect key="frame" x="92" y="13" width="87" height="32"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="push" title="Activity" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Wvc-0z-Knd">
-                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                    <font key="font" metaFont="system"/>
-                                    <string key="keyEquivalent">a</string>
-                                </buttonCell>
-                                <connections>
-                                    <action selector="stopImageLoop:" target="-2" id="4sd-Sf-rQj"/>
-                                </connections>
-                            </button>
-                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="eOS-Fk-IsV">
-                                <rect key="frame" x="14" y="46" width="165" height="32"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="push" title="Start" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="ea7-LY-ylC">
-                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                    <font key="font" metaFont="system"/>
-                                    <string key="keyEquivalent">s</string>
-                                </buttonCell>
-                                <connections>
-                                    <action selector="startImageLoop:" target="-2" id="w9A-wN-1MT"/>
-                                </connections>
-                            </button>
-                        </subviews>
-                    </customView>
                 </subviews>
                 <constraints>
-                    <constraint firstItem="wX5-uW-KLT" firstAttribute="top" secondItem="EiT-Mj-1SZ" secondAttribute="top" constant="20" id="5aa-eD-Xgt"/>
                     <constraint firstItem="c21-GK-PHL" firstAttribute="centerY" secondItem="OLR-Ww-MGY" secondAttribute="centerY" id="BEa-Zt-Fi2"/>
-                    <constraint firstItem="c21-GK-PHL" firstAttribute="leading" secondItem="EiT-Mj-1SZ" secondAttribute="leading" constant="20" id="Hde-0K-QK9"/>
+                    <constraint firstItem="wX5-uW-KLT" firstAttribute="top" secondItem="EiT-Mj-1SZ" secondAttribute="top" id="E1i-q6-hCE"/>
+                    <constraint firstItem="wX5-uW-KLT" firstAttribute="trailing" secondItem="EiT-Mj-1SZ" secondAttribute="trailing" id="GOB-yS-26J"/>
+                    <constraint firstAttribute="trailing" secondItem="c21-GK-PHL" secondAttribute="trailing" id="MVz-ub-iYg"/>
                     <constraint firstAttribute="trailing" secondItem="BLA-xH-A6q" secondAttribute="trailing" id="NL2-Ws-RIB"/>
+                    <constraint firstAttribute="bottom" secondItem="c21-GK-PHL" secondAttribute="bottom" id="Ncc-mt-FiW"/>
                     <constraint firstItem="c21-GK-PHL" firstAttribute="centerX" secondItem="OLR-Ww-MGY" secondAttribute="centerX" id="Oru-H6-1pF"/>
-                    <constraint firstAttribute="trailing" secondItem="wX5-uW-KLT" secondAttribute="trailing" constant="43" id="R4n-zr-QfT"/>
-                    <constraint firstItem="BLA-xH-A6q" firstAttribute="leading" secondItem="c21-GK-PHL" secondAttribute="trailing" id="alj-EA-qEv"/>
+                    <constraint firstItem="c21-GK-PHL" firstAttribute="leading" secondItem="EiT-Mj-1SZ" secondAttribute="leading" id="Ylo-S7-A4J"/>
                     <constraint firstItem="BLA-xH-A6q" firstAttribute="top" secondItem="EiT-Mj-1SZ" secondAttribute="top" id="fID-9I-kS4"/>
-                    <constraint firstItem="c21-GK-PHL" firstAttribute="top" secondItem="EiT-Mj-1SZ" secondAttribute="top" constant="20" id="snY-fg-T9n"/>
+                    <constraint firstItem="c21-GK-PHL" firstAttribute="top" secondItem="EiT-Mj-1SZ" secondAttribute="top" id="pQ5-ig-lmo"/>
                 </constraints>
             </view>
             <connections>

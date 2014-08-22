@@ -56,11 +56,12 @@
                         </items>
                     </menu>
                 </menuItem>
-                <menuItem title="Help" id="103">
+                <menuItem title="Controls" id="RaZ-ab-Ish">
                     <modifierMask key="keyEquivalentModifierMask"/>
                 </menuItem>
             </items>
         </menu>
         <customObject id="826" customClass="ApplicationDelegate"/>
+        <customObject id="zjc-4U-18E" customClass="ReviewController"/>
     </objects>
 </document>
