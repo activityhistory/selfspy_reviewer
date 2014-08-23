@@ -71,7 +71,7 @@ class ReviewController(NSWindowController):
     currentFrame = 0
 
     animationSpan = 300
-    animationAdjacency = 0     #around the screenshot
+    animationAdjacency = 0     #time around the screenshot
     animationSpeed = 30
 
     snippetW = 0
@@ -90,16 +90,11 @@ class ReviewController(NSWindowController):
     activity_frames = 0
     activity_time = 0.0
 
-    # main panel dimensions set to 75% of screen
-    # viewW = int(NSScreen.mainScreen().frame().size.width*0.75)
-    # viewH = int(NSScreen.mainScreen().frame().size.height*0.75)
-
 
     @IBAction
     def startAnimation_(self, sender):
         self.frames = filter(self.checkTime_, self.images)
         print "Animation Images"
-        print self.frames
 
         self.timings = []
         for f in self.frames:
@@ -118,47 +113,20 @@ class ReviewController(NSWindowController):
 
         self.animationLoop()
 
-        # img = self.frames[self.currentFrame][:]
-        # path = "/Volumes/SELFSPY/screenshots/" + img
-        # cueImage = NSImage.alloc().initByReferencingFile_(path)
-        # self.snippetW = self.snippetH * cueImage.size().width / cueImage.size().height
-        #
-        # if(self.samples[self.currentSample]['snippet']):
-        #     x = float(path.split("_")[-2])
-        #     y = float(path.split("_")[-1].split('-')[0].split('.')[0])
-        #     fromRect = CG.CGRectMake(x-self.snippetW/2, y-self.snippetH/2, self.snippetW, self.snippetH)
-        #     toRect = CG.CGRectMake(0.0, 0.0, self.snippetW, self.snippetH)
-        #     targetImage = NSImage.alloc().initWithSize_(NSMakeSize(self.snippetW, self.snippetH))
-        #
-        #     targetImage.lockFocus()
-        #     cueImage.drawInRect_fromRect_operation_fraction_( toRect, fromRect, NSCompositeCopy, 1.0 )
-        #     targetImage.unlockFocus()
-        #
-        # else:
-        #     # fromRect = CG.CGRectMake(0.0, 0.0, cueImage.size().width, cueImage.size().height)
-        #     # toRect = CG.CGRectMake(0.0, 0.0, min(NSScreen.mainScreen().frame().size.width, cueImage.size().width), min(NSScreen.mainScreen().frame().size.height, cueImage.size().width))
-        #     targetImage = cueImage #NSImage.alloc().initWithSize_(NSMakeSize(min(NSScreen.mainScreen().frame().size.width, cueImage.size().width), min(NSScreen.mainScreen().frame().size.height, cueImage.size().width)))
-        #
-        # targetImage.setName_(img)
-        # self.reviewController.mainPanel.setImage_(targetImage)
-        # self.animationStartTime = time.time()
-        # self.playAnimation = True
-        #
-        # s = objc.selector(self.animationLoop,signature='v@:')
-        # self.imageLoop = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(self.timings[self.currentFrame]/self.animationSpeed, self, s, None, False)
-
     def animationLoop(self):
         if(self.currentFrame >= len(self.frames)-1):
             self.stopAnimation_(self)
             return
 
+        time1 = time.time()
+        print time1
         img = self.frames[self.currentFrame][:]
         path = "/Volumes/SELFSPY/screenshots/" + img
         cueImage = NSImage.alloc().initByReferencingFile_(path)
-        # max_height = min(cueImage.size().height, self.viewH)
 
         if(self.playAnimation):
             if(self.samples[self.currentSample]['snippet']):
+                self.snippetW = self.snippetH * cueImage.size().width / cueImage.size().height
                 x = float(path.split("_")[-2])
                 y = float(path.split("_")[-1].split('-')[0].split('.')[0])
                 fromRect = CG.CGRectMake(x-self.snippetW/2, y-self.snippetH/2, self.snippetW, self.snippetH)
@@ -172,28 +140,14 @@ class ReviewController(NSWindowController):
             else:
                 targetImage = cueImage
 
-            targetImage.setName_(img)
             self.reviewController.mainPanel.setImage_(targetImage)
+            print time.time()
+            print ("Took " + str(time.time() - time1) + " seconds to show image")
 
             s = objc.selector(self.animationLoop,signature='v@:')
             self.imageLoop = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(self.timings[self.currentFrame]/self.animationSpeed, self, s, None, False)
 
             self.currentFrame += 1
-
-    # @objc.IBAction
-    def getAnimationFrames(self):
-        print "Finding frames"
-        self.frames = filter(self.checkTime_, self.images)
-        self.timings = []
-        for f in self.frames:
-            self.timings.append(datetime.datetime.strptime(f.split('_')[0], "%y%m%d-%H%M%S%f"))
-        for t in range(len(self.timings)-1):
-            self.timings[t] = (self.timings[t+1] - self.timings[t]).total_seconds()
-            # limit time to 1s?
-        if len(self.frames) >=2:
-            self.timings[-1] = 0
-        else:
-            NSLog("Cannot run animaiton with less than 2 images")
 
     def checkTime_(self, x):
         span = datetime.timedelta(seconds = self.animationSpan)
@@ -211,7 +165,6 @@ class ReviewController(NSWindowController):
 
         start = datetime.datetime.strftime(start, "%y%m%d-%H%M%S%f")
         end = datetime.datetime.strftime(end, "%y%m%d-%H%M%S%f")
-
         return ((x >= start) & (x <= end))
 
     @IBAction
@@ -222,35 +175,22 @@ class ReviewController(NSWindowController):
 
     @IBAction
     def stopAnimation_(self, sender):
-        self.growStopTime = time.time()
-        self.playAnimation = False
-
+        self.activity_time = time.time() - self.animationStartTime
         self.activity_size = self.snippetH
         self.activity_frames = self.currentFrame + 1
-        self.activity_time = self.growStopTime - self.animationStartTime
+        self.playAnimation = False
 
-        # self.reviewController.controlView.setHidden_(True)
         self.reviewController.dataView.setHidden_(False)
-
-        self.reviewController.mainPanel.setImage_(None)
-
-    @IBAction
-    def returnToControls_(self, sender):
-        self.reviewController.dataView.setHidden_(True)
-        # self.reviewController.controlView.setHidden_(False)
+        self.reviewController.mainPanel.setImage_(None) # a hack since I cannot easily paint a background on the dataView
 
     @IBAction
     def toggleAudioRecording_(self, sender):
-        controller = self.reviewController
-
         try:
             if self.recordingAudio:
                 self.recordingAudio = False
 
                 print "Stoping Audio recording"
-                # seems to miss reading the name sometimes
-                imageName = self.samples[self.currentSample]['screenshot'][0:-4] #str(controller.mainPanel.image().name())[0:-4]
-                print "Audio name should be " + imageName
+                imageName = self.samples[self.currentSample]['screenshot'][0:-4]
                 if (imageName == None) | (imageName == ''):
                     imageName = datetime.datetime.now().strftime("%y%m%d-%H%M%S%f") + '-audio'
                 imageName = str(os.path.join('/Volumes/SELFSPY', "audio/")) + imageName + '-week.m4a'
@@ -261,11 +201,11 @@ class ReviewController(NSWindowController):
                 s = NSAppleScript.alloc().initWithSource_("set filePath to \"" + imageName + "\" \n set placetosaveFile to a reference to file filePath \n tell application \"QuickTime Player\" \n set mydocument to document 1 \n tell document 1 \n stop \n end tell \n set newRecordingDoc to first document whose name = \"untitled\" \n export newRecordingDoc in placetosaveFile using settings preset \"Audio Only\" \n close newRecordingDoc without saving \n quit \n end tell")
                 s.executeAndReturnError_(None)
 
-                controller.recordButton.setImage_(self.recordImage)
-                controller.recordButton.setEnabled_(False)
-                controller.existAudioText.setStringValue_("You've recorded an answer:")
-                controller.playAudioButton.setHidden_(False)
-                controller.deleteAudioButton.setHidden_(False)
+                self.reviewController.recordButton.setImage_(self.recordImage)
+                self.reviewController.recordButton.setEnabled_(False)
+                self.reviewController.existAudioText.setStringValue_("You've recorded an answer:")
+                self.reviewController.playAudioButton.setHidden_(False)
+                self.reviewController.deleteAudioButton.setHidden_(False)
 
             else:
                 self.recordingAudio = True
@@ -274,7 +214,7 @@ class ReviewController(NSWindowController):
                 s = NSAppleScript.alloc().initWithSource_("tell application \"QuickTime Player\" \n set new_recording to (new audio recording) \n tell new_recording \n start \n end tell \n tell application \"System Events\" \n set visible of process \"QuickTime Player\" to false \n repeat until visible of process \"QuickTime Player\" is false \n end repeat \n end tell \n end tell")
                 s.executeAndReturnError_(None)
 
-                controller.recordButton.setImage_(self.stopImage)
+                self.reviewController.recordButton.setImage_(self.stopImage)
         except:
             print "Problem recording audio. Please try typing your answer instead."
 
@@ -289,14 +229,14 @@ class ReviewController(NSWindowController):
         try:
             if self.playingAudio:
                 self.playingAudio = False
+                self.reviewController.playAudioButton.setTitle_("Play Audio")
 
                 s = NSAppleScript.alloc().initWithSource_("tell application \"QuickTime Player\" \n stop the front document \n close the front document \n end tell")
                 s.executeAndReturnError_(None)
 
-                self.reviewController.playAudioButton.setTitle_("Play Audio")
-
             else:
                 self.playingAudio = True
+                self.reviewController.playAudioButton.setTitle_("Stop Audio")
 
                 audio = mutagen.mp4.MP4(self.audio_file)
                 length = audio.info.length
@@ -306,8 +246,6 @@ class ReviewController(NSWindowController):
 
                 s = objc.selector(self.stopAudioPlay,signature='v@:')
                 self.audioTimer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(length, self, s, None, False)
-
-                self.reviewController.playAudioButton.setTitle_("Stop Audio")
 
         except:
             print "Problem playing audio. Please delete audio file and try again."
@@ -320,11 +258,10 @@ class ReviewController(NSWindowController):
 
     def stopAudioPlay(self):
         self.playingAudio = False
+        self.reviewController.playAudioButton.setTitle_("Play Audio")
 
         s = NSAppleScript.alloc().initWithSource_("tell application \"QuickTime Player\" \n stop the front document \n close the front document \n end tell")
         s.executeAndReturnError_(None)
-
-        self.reviewController.playAudioButton.setTitle_("Play Audio")
 
     @IBAction
     def deleteAudio_(self, sender):
@@ -372,8 +309,8 @@ class ReviewController(NSWindowController):
                 return
 
             else:
-                print "Recording cue"
-                self.recordCue()
+                print "Recording data"
+                self.recordAnimation()
 
         if i == l-1:
             controller.progressButton.setTitle_("Finish")
@@ -381,13 +318,11 @@ class ReviewController(NSWindowController):
         # prepare window for next sample
         if i < l:
             self.populateReviewWindow()
-            # self.getAnimationFrames()
             controller.progressLabel.setStringValue_( str(i + 1) + '/' + str(l) )
-            self.reviewController.dataView.setHidden_(True)
-            # self.reviewController.controlView.setHidden_(False)
+            controller.dataView.setHidden_(True)
 
         else:
-            self.reviewController.close()
+            controller.close()
 
     def loadFirstExperience(self):
         controller = self.reviewController
@@ -413,7 +348,7 @@ class ReviewController(NSWindowController):
             controller.progressButton.setTitle_("Finish")
 
     def populateReviewWindow(self):
-        print "Populating Review window"
+        print "Populating Review Window with prior answers"
         controller = self.reviewController
         current_experience = self.samples[self.currentSample]['experience_id']
 
@@ -466,12 +401,9 @@ class ReviewController(NSWindowController):
                 controller.memoryStrength.selectCellWithTag_(q[-1].memory_strength)
             if q[-1].image_aptness >= -1:
                 controller.imageAptness.selectCellWithTag_(q[-1].image_aptness)
-            if q[-1].activity:
-                controller.activityText.setStringValue_(q[-1].activity)
+            controller.activityText.setStringValue_(q[-1].activity)
 
-        #self.getAnimationFrames(self)
-
-    def recordCue(self):
+    def recordAnimation(self):
         experience_id = self.samples[self.currentSample-1]['experience_id']
         debrief_id = self.samples[self.currentSample-1]['debrief_id']
         screenshot = self.samples[self.currentSample-1]['screenshot']
@@ -520,6 +452,11 @@ class ReviewController(NSWindowController):
         if(self.recordingAudio):
             "Stopping Audio Recording"
             self.toggleAudioRecording_(self)
+
+    def windowDidEnterFullScreen_(self, notification):
+        screenSize = NSScreen.mainScreen().frame().size
+        self.reviewController.window().setFrame_display_(NSMakeRect(0.0 , 0.0, screenSize.width, screenSize.height) ,True)
+        self.reviewController.mainPanel.setFrame_(NSMakeRect(0.0, 0.0, screenSize.width, screenSize.height))
 
     def createSession(self):
         dbPath = os.path.expanduser('/Volumes/SELFSPY/selfspy.sqlite')
@@ -606,9 +543,6 @@ class ReviewController(NSWindowController):
 
         self.currentSample = -1
 
-        # self.reviewController.dataView.makeBackingLayer()
-        # self.reviewController.dataView.layer.backgroundColor = CG.CGColorCreateGenericRGB(0, 0, 0, 0.9)
-
         # get random set of debriefed experience and other points
         self.session_maker = self.createSession(self)
         self.session = self.session_maker()
@@ -617,6 +551,5 @@ class ReviewController(NSWindowController):
         random.shuffle(self.samples)
 
         self.loadFirstExperience(self)
-        # self.getAnimationFrames(self)
 
     show = classmethod(show)
