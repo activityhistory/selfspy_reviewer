@@ -15,6 +15,8 @@ import datetime
 import random
 import string
 import mutagen.mp4
+import shutil
+import sqlite3
 
 import objc
 from objc import IBAction, IBOutlet
@@ -88,14 +90,15 @@ class ReviewController(NSWindowController):
     activity_size = 0
     activity_frames = 0
     activity_time = 0.0
+    thumbdrive = ""
 
 
     @IBAction
     def startAnimation_(self, sender):
-        self.reviewController.instructions.setHidden_(True)
+        # does not seem to register before the function gets stuck preparing the animation
+        self.reviewController.instructions.setStringValue_("Preparing Animation")
 
         self.frames = filter(self.checkTime_, self.images)
-        print "Animation Images"
 
         self.timings = []
         for f in self.frames:
@@ -103,30 +106,12 @@ class ReviewController(NSWindowController):
         for t in range(len(self.timings)-1):
             self.timings[t] = (self.timings[t+1] - self.timings[t]).total_seconds()
 
-        if len(self.frames) >=2:
-            self.timings[-1] = 0
-        else:
-            print "Cannot run animaiton with less than 2 images"
-            return
 
-        self.currentFrame = 0
-        self.playAnimation = True
-
-        self.animationLoop()
-
-    def animationLoop(self):
-        if(self.currentFrame >= len(self.frames)-1):
-            self.stopAnimation_(self)
-            return
-
-        time1 = time.time()
-        print time1
-        img = self.frames[self.currentFrame][:]
-        path = "/Volumes/SELFSPY/screenshots/" + img
-        cueImage = NSImage.alloc().initByReferencingFile_(path)
-
-        if(self.playAnimation):
-            if(self.samples[self.currentSample]['snippet']):
+        if(self.samples[self.currentSample]['snippet']):
+            print "Its a snippet"
+            for i in range(len(self.frames)):
+                path = os.path.join(self.thumbdrive, "screenshots", self.frames[i])
+                cueImage = NSImage.alloc().initByReferencingFile_(path)
                 self.snippetW = self.snippetH * cueImage.size().width / cueImage.size().height
                 x = float(path.split("_")[-2])
                 y = float(path.split("_")[-1].split('-')[0].split('.')[0])
@@ -138,7 +123,49 @@ class ReviewController(NSWindowController):
                 cueImage.drawInRect_fromRect_operation_fraction_( toRect, fromRect, NSCompositeCopy, 1.0 )
                 targetImage.unlockFocus()
 
+                self.frames[i] = targetImage
+
+        if len(self.frames) >=2:
+            self.timings[-1] = 0
+        else:
+            print "Cannot run animaiton with less than 2 images"
+            return
+
+        self.currentFrame = 0
+        self.playAnimation = True
+        self.animationStartTime = time.time()
+
+        self.reviewController.instructions.setHidden_(True)
+
+        self.animationLoop()
+
+    def animationLoop(self):
+        if(self.currentFrame >= len(self.frames)-1):
+            self.stopAnimation_(self)
+            return
+
+        # testing animation speed
+        time1 = time.time()
+        print time1
+
+        if(self.playAnimation):
+            if(self.samples[self.currentSample]['snippet']):
+                targetImage = self.frames[self.currentFrame]
+                # self.snippetW = self.snippetH * cueImage.size().width / cueImage.size().height
+                # x = float(path.split("_")[-2])
+                # y = float(path.split("_")[-1].split('-')[0].split('.')[0])
+                # fromRect = CG.CGRectMake(x-self.snippetW/2, y-self.snippetH/2, self.snippetW, self.snippetH)
+                # toRect = CG.CGRectMake(0.0, 0.0, self.snippetW, self.snippetH)
+                # targetImage = NSImage.alloc().initWithSize_(NSMakeSize(self.snippetW, self.snippetH))
+                #
+                # targetImage.lockFocus()
+                # cueImage.drawInRect_fromRect_operation_fraction_( toRect, fromRect, NSCompositeCopy, 1.0 )
+                # targetImage.unlockFocus()
+
             else:
+                img = self.frames[self.currentFrame][:]
+                path = os.path.join(self.thumbdrive, "screenshots", img)
+                cueImage = NSImage.alloc().initByReferencingFile_(path)
                 targetImage = cueImage
 
             self.reviewController.mainPanel.setImage_(targetImage)
@@ -184,6 +211,8 @@ class ReviewController(NSWindowController):
         self.reviewController.dataView.setHidden_(False)
         self.reviewController.mainPanel.setImage_(None) # a hack since I cannot easily paint a background on the dataView
 
+        self.reviewController.instructions.setStringValue_("Press \"S\" to start the animation\n\n\"P\" to mark when you recognize the project\n\n\"A\" to mark when you recognize the activity")
+
     @IBAction
     def toggleAudioRecording_(self, sender):
         try:
@@ -194,7 +223,7 @@ class ReviewController(NSWindowController):
                 imageName = self.samples[self.currentSample]['screenshot'][0:-4]
                 if (imageName == None) | (imageName == ''):
                     imageName = datetime.datetime.now().strftime("%y%m%d-%H%M%S%f") + '-audio'
-                imageName = str(os.path.join('/Volumes/SELFSPY', "audio/")) + imageName + '-week.m4a'
+                imageName = os.path.join(self.thumbdrive, "audio", imageName + '-week.m4a')
                 self.audio_file = imageName
                 imageName = string.replace(imageName, "/", ":")
                 imageName = imageName[1:]
@@ -462,7 +491,7 @@ class ReviewController(NSWindowController):
         self.reviewController.mainPanel.setFrame_(NSMakeRect(0.0, 0.0, screenSize.width, screenSize.height))
 
     def createSession(self):
-        dbPath = os.path.expanduser('/Volumes/SELFSPY/selfspy.sqlite')
+        dbPath = os.path.join(self.thumbdrive, 'selfspy.sqlite')
         engine = sqlalchemy.create_engine('sqlite:///%s' % dbPath)
         models.Base.metadata.create_all(engine)
 
@@ -492,7 +521,7 @@ class ReviewController(NSWindowController):
             self.samples.append(NSDictionary.dictionaryWithDictionary_(dict))
 
     def populateSamplesWithRandom(self):
-        self.images = os.listdir("/Volumes/SELFSPY/screenshots")
+        self.images = os.listdir(os.path.join(self.thumbdrive, "screenshots"))
         items_to_get = len(self.samples)
 
         while(items_to_get > 0):
@@ -546,6 +575,8 @@ class ReviewController(NSWindowController):
 
         self.currentSample = -1
 
+        self.lookupThumbdrive_(self)
+
         # get random set of debriefed experience and other points
         self.session_maker = self.createSession(self)
         self.session = self.session_maker()
@@ -556,3 +587,59 @@ class ReviewController(NSWindowController):
         self.loadFirstExperience(self)
 
     show = classmethod(show)
+
+    def lookupThumbdrive_(self, namefilter=""):
+        for dir in os.listdir('/Volumes') :
+            if namefilter in dir :
+                volume = os.path.join('/Volumes', dir)
+                if (os.path.ismount(volume)) :
+                    subDirs = os.listdir(volume)
+                    for filename in subDirs:
+                        if "selfspy.cfg" == filename :
+                            print "Selfspy drive found ", volume
+                            self.thumbdrive = volume
+                            return self.thumbdrive
+
+    @IBAction
+    def copyFiles_(self, notification):
+        try:
+            conn = sqlite3.connect(os.path.join(self.thumbdrive, 'selfspy.sqlite'))
+            c = conn.cursor()
+
+            # copy over database
+            fldr = os.path.join(self.thumbdrive, "trimmed_data")
+            if not os.path.exists(fldr):
+                os.makedirs(fldr)
+
+            db = os.path.join(self.thumbdrive, "selfspy.sqlite")
+            if os.path.exists(db):
+                shutil.copy(db, fldr)
+
+            # copy over end-of-week and experience screenshots
+            dst = os.path.join(fldr,  "screenshots")
+            if not os.path.exists(dst):
+                os.makedirs(dst)
+
+            screenshots = c.execute('SELECT screenshot from cue')
+            for row in screenshots:
+                absolute_path = os.path.join(self.thumbdrive, "screenshots", str(row[0]))
+                if os.path.exists(absolute_path):
+                    shutil.copy(absolute_path, dst)
+
+            exp_screenshots = c.execute('SELECT screenshot from experience')
+            for row in exp_screenshots:
+                if os.path.exists(str(row[0])):
+                    shutil.copy(str(row[0]), dst)
+
+            # copy over audio files
+            dst = os.path.join(fldr, 'audio')
+            if not os.path.exists(dst):
+                os.makedirs(dst)
+
+            audio_files = os.listdir(os.path.join(self.thumbdrive, 'audio'))
+            for file in audio_files:
+                absolute_path = os.path.join(self.thumbdrive, 'audio', file)
+                if os.path.exists(absolute_path):
+                    shutil.copy(absolute_path, dst)
+        except:
+            print "Files did not copy"

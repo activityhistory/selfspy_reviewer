@@ -34,6 +34,12 @@
                                     <action selector="performClose:" target="-1" id="193"/>
                                 </connections>
                             </menuItem>
+                            <menuItem title="Copy files" id="7U1-vd-Bda">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="copyFiles:" target="zjc-4U-18E" id="XDf-fT-tjk"/>
+                                </connections>
+                            </menuItem>
                         </items>
                     </menu>
                 </menuItem>
