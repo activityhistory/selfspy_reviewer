@@ -70,6 +70,7 @@ class ReviewController(NSWindowController):
     currentSample = -1
     frames = []
     currentFrame = 0
+    speedSamples = []
 
     animationSpan = 300
     animationAdjacency = 0     #time around the screenshot
@@ -92,6 +93,9 @@ class ReviewController(NSWindowController):
     activity_time = 0.0
     thumbdrive = ""
 
+    speedTesting = False
+    speeds = [60,30,15,10,5]
+    speedIndex = 0
 
     @IBAction
     def startAnimation_(self, sender):
@@ -212,6 +216,7 @@ class ReviewController(NSWindowController):
         self.reviewController.mainPanel.setImage_(None) # a hack since I cannot easily paint a background on the dataView
 
         self.reviewController.instructions.setStringValue_("Press \"S\" to start the animation\n\n\"P\" to mark when you recognize the project\n\n\"A\" to mark when you recognize the activity")
+        self.reviewController.progressLabel.setStringValue_( str(self.currentSample + 1) + '/' + str(len(self.samples)) )
 
     @IBAction
     def toggleAudioRecording_(self, sender):
@@ -223,6 +228,8 @@ class ReviewController(NSWindowController):
                 imageName = self.samples[self.currentSample]['screenshot'][0:-4]
                 if (imageName == None) | (imageName == ''):
                     imageName = datetime.datetime.now().strftime("%y%m%d-%H%M%S%f") + '-audio'
+                if(self.speedTesting):
+                    imageName = imageName + "_" + str(self.animationSpeed)
                 imageName = os.path.join(self.thumbdrive, "audio", imageName + '-week.m4a')
                 self.audio_file = imageName
                 imageName = string.replace(imageName, "/", ":")
@@ -310,16 +317,26 @@ class ReviewController(NSWindowController):
     def advanceExperienceWindow_(self, sender):
         controller = self.reviewController
         l = len(self.samples)
+        print "Length is " + str(l)
 
         # close if user clicked Finish on window with no experiences to comment
         if self.currentSample == -2:
             controller.close()
             return
 
-        self.currentSample += 1
+        print self.speedTesting
+        if(self.speedTesting):
+            if(self.speedIndex == len(self.speeds)-1):
+                self.speedIndex = 0
+                self.currentSample += 1
+            else:
+                self.speedIndex += 1
+            self.animationSpeed = self.speeds[self.speedIndex]
+        else:
+            self.currentSample += 1
         i = self.currentSample
 
-        # check if already to recording answers
+        # check if already recorded answers
         if i > 0:
             if(self.recordingAudio):
                 self.toggleAudioRecording_(self)
@@ -643,3 +660,45 @@ class ReviewController(NSWindowController):
                     shutil.copy(absolute_path, dst)
         except:
             print "Files did not copy"
+
+    @IBAction
+    def prepareSpeedTest_(self, notification):
+        print "Preparing for speed test"
+        self.speedSamples = []
+        self.images = os.listdir(os.path.join(self.thumbdrive, "screenshots"))
+        items_to_get = 4
+
+        while(items_to_get > 0):
+            img = random.choice(self.images)
+            enough_distance = True
+
+            # check if an experience sample or too close to other samples
+            if(img[-15:] == '-experience.jpg'):
+                continue
+
+            img_time = datetime.datetime.strptime(img[:19] , "%y%m%d-%H%M%S%f")
+
+            for s in self.samples:
+                sample_time = datetime.datetime.strptime(s['screenshot'][:19], "%y%m%d-%H%M%S%f")
+                if (abs(sample_time-img_time) < datetime.timedelta(seconds = 300)):
+                    enough_distance = False
+                    print "Randomly selected image too close to other samples. Searching for another."
+
+            if(enough_distance):
+                dict = {}
+                dict['experience_id'] = 0
+                dict['debrief_id'] = 0
+                dict['screenshot'] = img
+                dict['debriefed'] = False
+                if items_to_get % 2 == 0:
+                    dict['snippet'] = False
+                else:
+                    dict['snippet'] = True
+                self.speedSamples.append(NSDictionary.dictionaryWithDictionary_(dict))
+                items_to_get -= 1
+
+        self.samples = self.speedSamples
+        self.reviewController.samples = self.samples
+        self.reviewController.currentSample = 0
+        self.reviewController.speedTesting = True
+        self.reviewController.speedIndex = 0

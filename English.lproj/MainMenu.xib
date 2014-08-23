@@ -40,6 +40,12 @@
                                     <action selector="copyFiles:" target="zjc-4U-18E" id="XDf-fT-tjk"/>
                                 </connections>
                             </menuItem>
+                            <menuItem title="Speed Test" id="NaF-l7-u54">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="prepareSpeedTest:" target="zjc-4U-18E" id="83F-rt-adP"/>
+                                </connections>
+                            </menuItem>
                         </items>
                     </menu>
                 </menuItem>
