@@ -149,8 +149,8 @@ class ReviewController(NSWindowController):
             return
 
         # testing animation speed
-        time1 = time.time()
-        print time1
+        # time1 = time.time()
+        # print time1
 
         if(self.playAnimation):
             if(self.samples[self.currentSample]['snippet']):
@@ -173,8 +173,8 @@ class ReviewController(NSWindowController):
                 targetImage = cueImage
 
             self.reviewController.mainPanel.setImage_(targetImage)
-            print time.time()
-            print ("Took " + str(time.time() - time1) + " seconds to show image")
+            # print time.time()
+            # print ("Took " + str(time.time() - time1) + " seconds to show image")
 
             s = objc.selector(self.animationLoop,signature='v@:')
             self.imageLoop = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(self.timings[self.currentFrame]/self.animationSpeed, self, s, None, False)
@@ -515,7 +515,12 @@ class ReviewController(NSWindowController):
         return sessionmaker(bind=engine)
 
     def populateSamplesWithDebrief(self, session):
-        q = session.query(Debrief).distinct(Debrief.experience_id).group_by(Debrief.experience_id).all()
+        span = datetime.timedelta(days = 7)
+        last_week = datetime.datetime.now() - span
+        cutoff = datetime.datetime.strftime(last_week, "%Y-%m-%d")
+        print cutoff
+
+        q = session.query(Debrief).distinct(Debrief.experience_id).group_by(Debrief.experience_id).filter(sqlalchemy.func.substr(Debrief.created_at,0,11) >= cutoff).all()
 
         # trim to even length
         even_length = 2* (len(q) / 2)    # dividing two ints should produce a int rounded down
