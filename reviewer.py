@@ -12,7 +12,6 @@ import os
 import re   # for .split()
 import time
 import datetime
-# import math
 import random
 import string
 import mutagen.mp4
@@ -38,7 +37,7 @@ class ReviewController(NSWindowController):
 
     # outlets for UI elements
     mainPanel = IBOutlet()
-    errorMessage = IBOutlet()
+    instructions = IBOutlet()
 
     controlView = IBOutlet()
     dataView = IBOutlet()
@@ -93,6 +92,8 @@ class ReviewController(NSWindowController):
 
     @IBAction
     def startAnimation_(self, sender):
+        self.reviewController.instructions.setHidden_(True)
+
         self.frames = filter(self.checkTime_, self.images)
         print "Animation Images"
 
@@ -311,6 +312,7 @@ class ReviewController(NSWindowController):
             else:
                 print "Recording data"
                 self.recordAnimation()
+                controller.instructions.setHidden_(False)
 
         if i == l-1:
             controller.progressButton.setTitle_("Finish")
@@ -330,7 +332,7 @@ class ReviewController(NSWindowController):
 
         # Catch when no samples are available to show
         if (not self.samples) or (l == 0):
-            controller.errorMessage.setHidden_(False)
+            controller.instructions.setHidden_(False)
             controller.doingText.setEnabled_(False)
             controller.recordButton.setEnabled_(False)
             controller.progressLabel.setStringValue_("0/0")
@@ -343,6 +345,7 @@ class ReviewController(NSWindowController):
 
         self.populateReviewWindow(self)
         controller.progressLabel.setStringValue_( str(i + 1) + '/' + str(l) )
+        controller.instructions.setHidden_(False)
 
         if i == l-1:
             controller.progressButton.setTitle_("Finish")

@@ -11,10 +11,10 @@
                 <outlet property="dataView" destination="BLA-xH-A6q" id="bUa-bV-c4K"/>
                 <outlet property="deleteAudioButton" destination="9cU-vc-wUa" id="ltQ-pE-mJF"/>
                 <outlet property="doingText" destination="EcU-xD-byN" id="DhU-RN-UHG"/>
-                <outlet property="errorMessage" destination="OLR-Ww-MGY" id="3L3-6N-r9l"/>
                 <outlet property="existAudioText" destination="cP8-gU-56S" id="Xqj-4f-orE"/>
                 <outlet property="features" destination="qhW-JD-Rb1" id="p5C-VP-O1O"/>
                 <outlet property="imageAptness" destination="sfM-uP-snS" id="N73-ku-DRT"/>
+                <outlet property="instructions" destination="pe6-P1-2Zb" id="Nno-5U-NmK"/>
                 <outlet property="mainPanel" destination="c21-GK-PHL" id="uLi-JP-pd8"/>
                 <outlet property="memoryStrength" destination="L2N-AV-Xam" id="2Iz-gc-uBJ"/>
                 <outlet property="playAudioButton" destination="leI-Jl-q4n" id="tNJ-P6-m7A"/>
@@ -84,15 +84,6 @@
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" imageFrameStyle="photo" id="Gra-l8-vcC"/>
                     </imageView>
-                    <textField hidden="YES" horizontalHuggingPriority="251" verticalHuggingPriority="750" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="OLR-Ww-MGY">
-                        <rect key="frame" x="28" y="375" width="379" height="17"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="You have no Experience Samples from today to be reviewed" id="eVe-0P-mx1">
-                            <font key="font" metaFont="system"/>
-                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
-                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
-                        </textFieldCell>
-                    </textField>
                     <customView hidden="YES" translatesAutoresizingMaskIntoConstraints="NO" id="BLA-xH-A6q">
                         <rect key="frame" x="669" y="0.0" width="280" height="700"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -316,15 +307,29 @@
                             <constraint firstAttribute="height" constant="700" id="od6-bx-zc2"/>
                         </constraints>
                     </customView>
+                    <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" misplaced="YES" setsMaxLayoutWidthAtFirstLayout="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pe6-P1-2Zb">
+                        <rect key="frame" x="341" y="392" width="286" height="85"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <textFieldCell key="cell" sendsActionOnEndEditing="YES" id="d0v-sj-YjX">
+                            <font key="font" metaFont="system"/>
+                            <string key="title">Press "S" to start animation
+
+"P" to mark when you recognize the project
+
+"A" to mark when you recognize the activity</string>
+                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
                 </subviews>
                 <constraints>
-                    <constraint firstItem="c21-GK-PHL" firstAttribute="centerY" secondItem="OLR-Ww-MGY" secondAttribute="centerY" id="BEa-Zt-Fi2"/>
                     <constraint firstItem="wX5-uW-KLT" firstAttribute="top" secondItem="EiT-Mj-1SZ" secondAttribute="top" id="E1i-q6-hCE"/>
                     <constraint firstItem="wX5-uW-KLT" firstAttribute="trailing" secondItem="EiT-Mj-1SZ" secondAttribute="trailing" id="GOB-yS-26J"/>
                     <constraint firstAttribute="trailing" secondItem="c21-GK-PHL" secondAttribute="trailing" id="MVz-ub-iYg"/>
                     <constraint firstAttribute="trailing" secondItem="BLA-xH-A6q" secondAttribute="trailing" id="NL2-Ws-RIB"/>
                     <constraint firstAttribute="bottom" secondItem="c21-GK-PHL" secondAttribute="bottom" id="Ncc-mt-FiW"/>
-                    <constraint firstItem="c21-GK-PHL" firstAttribute="centerX" secondItem="OLR-Ww-MGY" secondAttribute="centerX" id="Oru-H6-1pF"/>
+                    <constraint firstAttribute="centerY" secondItem="pe6-P1-2Zb" secondAttribute="centerY" constant="16.5" id="O7f-Ww-lpn"/>
+                    <constraint firstAttribute="centerX" secondItem="pe6-P1-2Zb" secondAttribute="centerX" constant="85.5" id="PqB-tS-gPf"/>
                     <constraint firstItem="c21-GK-PHL" firstAttribute="leading" secondItem="EiT-Mj-1SZ" secondAttribute="leading" id="Ylo-S7-A4J"/>
                     <constraint firstItem="BLA-xH-A6q" firstAttribute="top" secondItem="EiT-Mj-1SZ" secondAttribute="top" id="fID-9I-kS4"/>
                     <constraint firstItem="c21-GK-PHL" firstAttribute="top" secondItem="EiT-Mj-1SZ" secondAttribute="top" id="pQ5-ig-lmo"/>
