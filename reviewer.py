@@ -150,21 +150,10 @@ class ReviewController(NSWindowController):
 
         # testing animation speed
         # time1 = time.time()
-        # print time1
 
         if(self.playAnimation):
             if(self.samples[self.currentSample]['snippet']):
                 targetImage = self.frames[self.currentFrame]
-                # self.snippetW = self.snippetH * cueImage.size().width / cueImage.size().height
-                # x = float(path.split("_")[-2])
-                # y = float(path.split("_")[-1].split('-')[0].split('.')[0])
-                # fromRect = CG.CGRectMake(x-self.snippetW/2, y-self.snippetH/2, self.snippetW, self.snippetH)
-                # toRect = CG.CGRectMake(0.0, 0.0, self.snippetW, self.snippetH)
-                # targetImage = NSImage.alloc().initWithSize_(NSMakeSize(self.snippetW, self.snippetH))
-                #
-                # targetImage.lockFocus()
-                # cueImage.drawInRect_fromRect_operation_fraction_( toRect, fromRect, NSCompositeCopy, 1.0 )
-                # targetImage.unlockFocus()
 
             else:
                 img = self.frames[self.currentFrame][:]
@@ -173,13 +162,27 @@ class ReviewController(NSWindowController):
                 targetImage = cueImage
 
             self.reviewController.mainPanel.setImage_(targetImage)
-            # print time.time()
+
+
+            # don't show images that will would be scheduled to show in less than 1/60s
+            t = self.timings[self.currentFrame]/self.animationSpeed
+            count = 1
+            while(t < 1/30.0):
+                print "Time too small"
+                if((self.currentFrame + count) >= (len(self.frames)-1)):
+                    self.stopAnimation_(self)
+                    return
+                t += self.timings[self.currentFrame + count]/self.animationSpeed
+                count += 1
+
+            self.currentFrame += count
+
             # print ("Took " + str(time.time() - time1) + " seconds to show image")
 
             s = objc.selector(self.animationLoop,signature='v@:')
-            self.imageLoop = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(self.timings[self.currentFrame]/self.animationSpeed, self, s, None, False)
+            self.imageLoop = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(t, self, s, None, False)
 
-            self.currentFrame += 1
+
 
     def checkTime_(self, x):
         span = datetime.timedelta(seconds = self.animationSpan)
@@ -518,7 +521,6 @@ class ReviewController(NSWindowController):
         span = datetime.timedelta(days = 7)
         last_week = datetime.datetime.now() - span
         cutoff = datetime.datetime.strftime(last_week, "%Y-%m-%d")
-        print cutoff
 
         q = session.query(Debrief).distinct(Debrief.experience_id).group_by(Debrief.experience_id).filter(sqlalchemy.func.substr(Debrief.created_at,0,11) >= cutoff).all()
 
@@ -552,6 +554,12 @@ class ReviewController(NSWindowController):
 
             # check if an experience sample or too close to other samples
             if(img[-15:] == '-experience.jpg'):
+                continue
+
+            span = datetime.timedelta(days = 7)
+            last_week = datetime.datetime.now() - span
+            cutoff = datetime.datetime.strftime(last_week, "%y%m%d")
+            if(img[0:5] < cutoff):
                 continue
 
             img_time = datetime.datetime.strptime(img[:19] , "%y%m%d-%H%M%S%f")
