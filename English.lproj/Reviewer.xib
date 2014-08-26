@@ -11,7 +11,6 @@
                 <outlet property="dataView" destination="BLA-xH-A6q" id="bUa-bV-c4K"/>
                 <outlet property="deleteAudioButton" destination="9cU-vc-wUa" id="ltQ-pE-mJF"/>
                 <outlet property="doingText" destination="EcU-xD-byN" id="DhU-RN-UHG"/>
-                <outlet property="errorMessage" destination="OLR-Ww-MGY" id="3L3-6N-r9l"/>
                 <outlet property="existAudioText" destination="cP8-gU-56S" id="Xqj-4f-orE"/>
                 <outlet property="features" destination="qhW-JD-Rb1" id="p5C-VP-O1O"/>
                 <outlet property="imageAptness" destination="sfM-uP-snS" id="N73-ku-DRT"/>
@@ -42,15 +41,6 @@
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" imageFrameStyle="grayBezel" id="Gra-l8-vcC"/>
                     </imageView>
-                    <textField hidden="YES" horizontalHuggingPriority="251" verticalHuggingPriority="750" ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="OLR-Ww-MGY">
-                        <rect key="frame" x="28" y="375" width="379" height="17"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="You have no Experience Samples from today to be reviewed" id="eVe-0P-mx1">
-                            <font key="font" metaFont="system"/>
-                            <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
-                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
-                        </textFieldCell>
-                    </textField>
                     <customView hidden="YES" translatesAutoresizingMaskIntoConstraints="NO" id="BLA-xH-A6q">
                         <rect key="frame" x="669" y="0.0" width="280" height="700"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -319,10 +309,8 @@
                 </subviews>
                 <constraints>
                     <constraint firstItem="wX5-uW-KLT" firstAttribute="top" secondItem="EiT-Mj-1SZ" secondAttribute="top" constant="20" id="5aa-eD-Xgt"/>
-                    <constraint firstItem="c21-GK-PHL" firstAttribute="centerY" secondItem="OLR-Ww-MGY" secondAttribute="centerY" id="BEa-Zt-Fi2"/>
                     <constraint firstItem="c21-GK-PHL" firstAttribute="leading" secondItem="EiT-Mj-1SZ" secondAttribute="leading" constant="20" id="Hde-0K-QK9"/>
                     <constraint firstAttribute="trailing" secondItem="BLA-xH-A6q" secondAttribute="trailing" id="NL2-Ws-RIB"/>
-                    <constraint firstItem="c21-GK-PHL" firstAttribute="centerX" secondItem="OLR-Ww-MGY" secondAttribute="centerX" id="Oru-H6-1pF"/>
                     <constraint firstAttribute="trailing" secondItem="wX5-uW-KLT" secondAttribute="trailing" constant="43" id="R4n-zr-QfT"/>
                     <constraint firstItem="BLA-xH-A6q" firstAttribute="leading" secondItem="c21-GK-PHL" secondAttribute="trailing" id="alj-EA-qEv"/>
                     <constraint firstItem="BLA-xH-A6q" firstAttribute="top" secondItem="EiT-Mj-1SZ" secondAttribute="top" id="fID-9I-kS4"/>

@@ -34,6 +34,12 @@
                                     <action selector="performClose:" target="-1" id="193"/>
                                 </connections>
                             </menuItem>
+                            <menuItem title="Save Files" id="Thq-cN-V0j">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="copyFiles:" target="qma-RM-muK" id="RZ9-Y5-Vap"/>
+                                </connections>
+                            </menuItem>
                         </items>
                     </menu>
                 </menuItem>
@@ -62,5 +68,6 @@
             </items>
         </menu>
         <customObject id="826" customClass="ApplicationDelegate"/>
+        <customObject id="qma-RM-muK" customClass="ReviewController"/>
     </objects>
 </document>

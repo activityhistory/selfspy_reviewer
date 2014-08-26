@@ -16,9 +16,12 @@ import math
 import random
 import string
 import mutagen.mp4
+import sqlite3
+import shutil
 
 import objc
-from objc import IBAction, IBOutlet
+from objc import IBAction
+from objc import IBOutlet
 
 from Foundation import *
 from AppKit import *
@@ -26,11 +29,24 @@ from Cocoa import (NSURL, NSString, NSTimer,NSInvocation, NSNotificationCenter)
 import Quartz.CoreGraphics as CG
 
 import sqlalchemy
-from sqlalchemy.orm import sessionmaker, mapper, join
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import mapper
+from sqlalchemy.orm import join
 from sqlalchemy.dialects.sqlite.base import dialect
 
 import models
-from models import Experience, Debrief, Cue
+from models import Experience
+from models import Debrief
+from models import Cue
+
+
+def showAlert(msg):
+    print msg
+    alert = NSAlert.alloc().init()
+    alert.addButtonWithTitle_("OK")
+    alert.setMessageText_(msg)
+    alert.setAlertStyle_(NSWarningAlertStyle)
+    alert.runModal()
 
 
 # Experience Sampling window controller
@@ -38,7 +54,6 @@ class ReviewController(NSWindowController):
 
     # main image area
     mainPanel = IBOutlet()
-    errorMessage = IBOutlet()
 
     # right-side panels
     controlView = IBOutlet()
@@ -89,18 +104,19 @@ class ReviewController(NSWindowController):
     viewW = int(NSScreen.mainScreen().frame().size.width*0.75)
     viewH = int(NSScreen.mainScreen().frame().size.height*0.75)
 
+    datadrive = ''
+
 
     @IBAction
     def startImageLoop_(self, sender):
         img = self.samples[self.currentSample]['screenshot'][:]
-        path = "/Volumes/SELFSPY/screenshots/" + img
+        path = os.path.join(self.datadrive, "screenshots", img)
         cueImage = NSImage.alloc().initByReferencingFile_(path)
         self.cueRatio = cueImage.size().width / cueImage.size().height
-        self.cueW = 20 * self.cueRatio
         self.cueH = 20
+        self.cueW = self.cueH * self.cueRatio
 
         targetImage = NSImage.alloc().initWithSize_(NSMakeSize(self.cueW, self.cueH))
-        targetImage.setName_(img)
 
         if(self.samples[self.currentSample]['snippet']):
             x = float(path.split("_")[-2])
@@ -125,7 +141,7 @@ class ReviewController(NSWindowController):
 
     def imageGrowLoop(self):
         img = self.samples[self.currentSample]['screenshot'][:]
-        path = "/Volumes/SELFSPY/screenshots/" + self.samples[self.currentSample]['screenshot'][:]
+        path = os.path.join(self.datadrive, "screenshots", self.samples[self.currentSample]['screenshot'])
         cueImage = NSImage.alloc().initByReferencingFile_(path)
         max_height = min(cueImage.size().height, self.viewH)
 
@@ -135,7 +151,6 @@ class ReviewController(NSWindowController):
             self.cueW = self.cueH * self.cueRatio
 
             targetImage = NSImage.alloc().initWithSize_(NSMakeSize(self.cueW, self.cueH))
-            targetImage.setName_(img)
 
             if(self.samples[self.currentSample]['snippet']):
                 x = float(path.split("_")[-2])
@@ -157,16 +172,13 @@ class ReviewController(NSWindowController):
 
     @IBAction
     def recordProjectSize_(self, sender):
-        # self.reviewController.dataView.setHidden_(True)
         self.project_size = self.cueH
         self.project_time = time.time() - self.growStartTime
 
     @IBAction
     def stopImageLoop_(self, sender):
-        self.growStopTime = time.time()
         self.growImage = False
-        self.activity_time = self.growStopTime - self.growStartTime
-
+        self.activity_time = time.time() - self.growStartTime
         self.activity_size = self.cueH
 
         self.reviewController.controlView.setHidden_(True)
@@ -183,44 +195,30 @@ class ReviewController(NSWindowController):
 
         try:
             if self.recordingAudio:
-                self.recordingAudio = False
-
                 print "Stoping Audio recording"
-                # seems to miss reading the name sometimes
-                imageName = self.samples[self.currentSample]['screenshot'][0:-4] #str(controller.mainPanel.image().name())[0:-4]
-                print "Audio name should be " + imageName
-                if (imageName == None) | (imageName == ''):
-                    imageName = datetime.datetime.now().strftime("%y%m%d-%H%M%S%f") + '-audio'
-                imageName = str(os.path.join('/Volumes/SELFSPY', "audio/")) + imageName + '-week.m4a'
-                self.audio_file = imageName
-                imageName = string.replace(imageName, "/", ":")
-                imageName = imageName[1:]
-
-                s = NSAppleScript.alloc().initWithSource_("set filePath to \"" + imageName + "\" \n set placetosaveFile to a reference to file filePath \n tell application \"QuickTime Player\" \n set mydocument to document 1 \n tell document 1 \n stop \n end tell \n set newRecordingDoc to first document whose name = \"untitled\" \n export newRecordingDoc in placetosaveFile using settings preset \"Audio Only\" \n close newRecordingDoc without saving \n quit \n end tell")
-                s.executeAndReturnError_(None)
-
+                self.recordingAudio = False
                 controller.recordButton.setImage_(self.recordImage)
                 controller.recordButton.setEnabled_(False)
                 controller.existAudioText.setStringValue_("You've recorded an answer:")
                 controller.playAudioButton.setHidden_(False)
                 controller.deleteAudioButton.setHidden_(False)
 
+                imageName = self.samples[self.currentSample]['screenshot'][0:-4]
+                if not imageName:
+                    imageName = datetime.datetime.now().strftime("%y%m%d-%H%M%S%f") + '-audio'
+                imageName = os.path.join(self.datadrive, "audio", imageName + '-week.m4a')
+                self.audio_file = imageName
+                s = NSAppleScript.alloc().initWithSource_("set filePath to \"" + string.replace(imageName[1:], "/", ":") + "\" \n set placetosaveFile to a reference to file filePath \n tell application \"QuickTime Player\" \n set mydocument to document 1 \n tell document 1 \n stop \n end tell \n set newRecordingDoc to first document whose name = \"untitled\" \n export newRecordingDoc in placetosaveFile using settings preset \"Audio Only\" \n close newRecordingDoc without saving \n quit \n end tell")
+                s.executeAndReturnError_(None)
             else:
-                self.recordingAudio = True
-
                 print "Starting Audio Recording"
+                self.recordingAudio = True
+                controller.recordButton.setImage_(self.stopImage)
+
                 s = NSAppleScript.alloc().initWithSource_("tell application \"QuickTime Player\" \n set new_recording to (new audio recording) \n tell new_recording \n start \n end tell \n tell application \"System Events\" \n set visible of process \"QuickTime Player\" to false \n repeat until visible of process \"QuickTime Player\" is false \n end repeat \n end tell \n end tell")
                 s.executeAndReturnError_(None)
-
-                controller.recordButton.setImage_(self.stopImage)
         except:
-            print "Problem recording audio. Please try typing your answer instead."
-
-            alert = NSAlert.alloc().init()
-            alert.addButtonWithTitle_("OK")
-            alert.setMessageText_("Problem recording audio. Please try typing your answer instead.")
-            alert.setAlertStyle_(NSWarningAlertStyle)
-            alert.runModal()
+            showAlert("Problem recording audio. Please try typing your answer instead.")
 
     @IBAction
     def toggleAudioPlay_(self, sender):
@@ -232,37 +230,26 @@ class ReviewController(NSWindowController):
                 s.executeAndReturnError_(None)
 
                 self.reviewController.playAudioButton.setTitle_("Play Audio")
-
             else:
                 self.playingAudio = True
-
-                audio = mutagen.mp4.MP4(self.audio_file)
-                length = audio.info.length
-
                 s = NSAppleScript.alloc().initWithSource_("set filePath to POSIX file \"" + self.audio_file + "\" \n tell application \"QuickTime Player\" \n open filePath \n tell application \"System Events\" \n set visible of process \"QuickTime Player\" to false \n repeat until visible of process \"QuickTime Player\" is false \n end repeat \n end tell \n play the front document \n end tell")
                 s.executeAndReturnError_(None)
 
+                audio = mutagen.mp4.MP4(self.audio_file)
+                length = audio.info.length
                 s = objc.selector(self.stopAudioPlay,signature='v@:')
                 self.audioTimer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(length, self, s, None, False)
 
                 self.reviewController.playAudioButton.setTitle_("Stop Audio")
-
         except:
-            print "Problem playing audio. Please delete audio file and try again."
-
-            alert = NSAlert.alloc().init()
-            alert.addButtonWithTitle_("OK")
-            alert.setMessageText_("Problem playing audio. Please delete audio file and try again.")
-            alert.setAlertStyle_(NSWarningAlertStyle)
-            alert.runModal()
+            showAlert("Problem playing audio. Please delete audio file and try again.")
 
     def stopAudioPlay(self):
         self.playingAudio = False
+        self.reviewController.playAudioButton.setTitle_("Play Audio")
 
         s = NSAppleScript.alloc().initWithSource_("tell application \"QuickTime Player\" \n stop the front document \n close the front document \n end tell")
         s.executeAndReturnError_(None)
-
-        self.reviewController.playAudioButton.setTitle_("Play Audio")
 
     @IBAction
     def deleteAudio_(self, sender):
@@ -282,11 +269,6 @@ class ReviewController(NSWindowController):
         controller = self.reviewController
         l = len(self.samples)
 
-        # close if user clicked Finish on window with no experiences to comment
-        if self.currentSample == -2:
-            controller.close()
-            return
-
         self.currentSample += 1
         i = self.currentSample
 
@@ -301,19 +283,11 @@ class ReviewController(NSWindowController):
             # tell user to fill in two ratings
             if(memory_selection == None or aptness_selection == None):
                 self.currentSample -= 1
-
-                alert = NSAlert.alloc().init()
-                alert.addButtonWithTitle_("OK")
-                alert.setMessageText_("Please answer the first four questions")
-                alert.setAlertStyle_(NSWarningAlertStyle)
-                alert.runModal()
-
+                showAlert("Please answer the first four questions")
                 return
-
             else:
                 print "Recording cue"
                 self.recordCue()
-
         if i == l-1:
             controller.progressButton.setTitle_("Finish")
 
@@ -338,7 +312,7 @@ class ReviewController(NSWindowController):
             controller.recordButton.setEnabled_(False)
             controller.progressLabel.setStringValue_("0/0")
             controller.progressButton.setTitle_("Finish")
-            self.currentSample -= 1
+            self.currentSample += 1
             return
 
         self.currentSample += 1
@@ -382,13 +356,13 @@ class ReviewController(NSWindowController):
         if current_experience != 0:
             q = self.session.query(Cue).filter(Cue.experience_id == current_experience).all()
         else:
-            q = False
+            q = None
 
         if q:
             controller.doingText.setStringValue_(q[-1].doing_report)
             controller.features.setStringValue_(q[-1].features)
             controller.audio_file = q[-1].audio_file
-            if (q[-1].audio_file != '') & (q[-1].audio_file != None):
+            if (q[-1].audio_file):
                 controller.recordButton.setEnabled_(False)
                 controller.existAudioText.setStringValue_("You've recorded an answer:")
                 controller.playAudioButton.setHidden_(False)
@@ -398,9 +372,9 @@ class ReviewController(NSWindowController):
                 controller.existAudioText.setStringValue_("Record your answer:")
                 controller.playAudioButton.setHidden_(True)
                 controller.deleteAudioButton.setHidden_(True)
-            if q[-1].memory_strength >= -1:
+            if q[-1].memory_strength:
                 controller.memoryStrength.selectCellWithTag_(q[-1].memory_strength)
-            if q[-1].image_aptness >= -1:
+            if q[-1].image_aptness:
                 controller.imageAptness.selectCellWithTag_(q[-1].image_aptness)
             if q[-1].activity:
                 controller.activityText.setStringValue_(q[-1].activity)
@@ -430,15 +404,8 @@ class ReviewController(NSWindowController):
                 self.session.commit()
                 break
             except sqlalchemy.exc.OperationalError:
-                print "Database operational error. Your storage device may be full."
                 self.session.rollback()
-
-                alert = NSAlert.alloc().init()
-                alert.addButtonWithTitle_("OK")
-                alert.setMessageText_("Database operational error. Your storage device may be full.")
-                alert.setAlertStyle_(NSWarningAlertStyle)
-                alert.runModal()
-
+                showAlert("Database error. Your storage device may be full.")
                 break
             except:
                 print "Rollback"
@@ -450,11 +417,11 @@ class ReviewController(NSWindowController):
 
     def windowWillClose_(self, notification):
         if(self.recordingAudio):
-            "Stopping Audio Recording"
+            print "Stopping Audio Recording"
             self.toggleAudioRecording_(self)
 
     def createSession(self):
-        dbPath = os.path.expanduser('/Volumes/SELFSPY/selfspy.sqlite')
+        dbPath = os.path.expanduser(os.path.join(self.datadrive, "selfspy.sqlite"))
         engine = sqlalchemy.create_engine('sqlite:///%s' % dbPath)
         models.Base.metadata.create_all(engine)
 
@@ -477,14 +444,11 @@ class ReviewController(NSWindowController):
             dict['debrief_id'] = u[0].Debrief.id
             dict['screenshot'] = u[0].Experience.screenshot.split('/')[-1]
             dict['debriefed'] = True
-            if i % 2 == 0:
-                dict['snippet'] = False
-            else:
-                dict['snippet'] = True
+            dict['snippet'] = bool(i % 2)
             self.samples.append(NSDictionary.dictionaryWithDictionary_(dict))
 
     def populateSamplesWithRandom(self):
-        images = os.listdir("/Volumes/SELFSPY/screenshots")
+        images = os.listdir(os.path.join(self.datadrive, "screenshots"))
         items_to_get = len(self.samples)
 
         while(items_to_get > 0):
@@ -509,10 +473,7 @@ class ReviewController(NSWindowController):
                 dict['debrief_id'] = 0
                 dict['screenshot'] = img
                 dict['debriefed'] = False
-                if items_to_get % 2 == 0:
-                    dict['snippet'] = False
-                else:
-                    dict['snippet'] = True
+                dict['snippet'] = bool(items_to_get % 2)
                 self.samples.append(NSDictionary.dictionaryWithDictionary_(dict))
                 items_to_get -= 1
 
@@ -534,6 +495,8 @@ class ReviewController(NSWindowController):
 
         self.currentSample = -1
 
+        self.lookupDatadrive_(self)
+
         # get random set of debriefed experience and other points
         self.session_maker = self.createSession(self)
         self.session = self.session_maker()
@@ -544,3 +507,58 @@ class ReviewController(NSWindowController):
         self.loadFirstExperience(self)
 
     show = classmethod(show)
+
+    def lookupDatadrive_(self, namefilter=""):
+        self.datadrive = None
+        for dir in os.listdir('/Volumes') :
+            if namefilter in dir :
+                volume = os.path.join('/Volumes', dir)
+                if (os.path.ismount(volume)) :
+                    subDirs = os.listdir(volume)
+                    for filename in subDirs:
+                        if "selfspy.cfg" == filename :
+                            print "External Selfspy drive found ", volume
+                            self.datadrive = volume
+        if not self.datadrive:
+            self.datadrive = os.path.expanduser("~/.selfspy")
+            print "Using internal Selfspy storage ~/.selfspy"
+
+    @IBAction
+    def copyFiles_(self, notification):
+        try:
+            conn = sqlite3.connect(os.path.join(self.datadrive, 'selfspy.sqlite'))
+            c = conn.cursor()
+
+            # copy over database
+            fldr = os.path.join(self.datadrive, "trimmed_data")
+            if not os.path.exists(fldr):
+                os.makedirs(fldr)
+            db = os.path.join(self.datadrive, "selfspy.sqlite")
+            if os.path.exists(db):
+                shutil.copy(db, fldr)
+
+            # copy over end-of-week and samples and experience screenshots
+            dst = os.path.join(fldr,  "screenshots")
+            if not os.path.exists(dst):
+                os.makedirs(dst)
+            screenshots = c.execute('SELECT screenshot from cue')
+            for row in screenshots:
+                absolute_path = os.path.join(self.datadrive, "screenshots", str(row[0]))
+                if os.path.exists(absolute_path):
+                    shutil.copy(absolute_path, dst)
+            exp_screenshots = c.execute('SELECT screenshot from experience')
+            for row in exp_screenshots:
+                if os.path.exists(str(row[0])):
+                    shutil.copy(str(row[0]), dst)
+
+            # copy over audio files
+            dst = os.path.join(fldr, 'audio')
+            if not os.path.exists(dst):
+                os.makedirs(dst)
+            audio_files = os.listdir(os.path.join(self.datadrive, 'audio'))
+            for file in audio_files:
+                absolute_path = os.path.join(self.datadrive, 'audio', file)
+                if os.path.exists(absolute_path):
+                    shutil.copy(absolute_path, dst)
+        except:
+            print "Files did not copy"
