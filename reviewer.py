@@ -428,7 +428,11 @@ class ReviewController(NSWindowController):
         return sessionmaker(bind=engine)
 
     def populateSamplesWithDebrief(self, session):
-        q = session.query(Debrief).distinct(Debrief.experience_id).group_by(Debrief.experience_id).all()
+        span = datetime.timedelta(days = 7)
+        last_week = datetime.datetime.now() - span
+        cutoff = datetime.datetime.strftime(last_week, "%Y-%m-%d")
+
+        q = session.query(Debrief).distinct(Debrief.experience_id).group_by(Debrief.experience_id).filter(sqlalchemy.func.substr(Debrief.created_at,0,11) >= cutoff).all()
 
         # trim to even length
         even_length = 2* (len(q) / 2)    # dividing two ints should produce a int rounded down
@@ -465,7 +469,7 @@ class ReviewController(NSWindowController):
                 sample_time = datetime.datetime.strptime(s['screenshot'][:19], "%y%m%d-%H%M%S%f")
                 if (abs(sample_time-img_time) < datetime.timedelta(seconds = 300)):
                     enough_distance = False
-                    print "Randomly selected image too close to other samples. Searching for anoter."
+                    print "Randomly selected image too close to other samples. Searching for another."
 
             if(enough_distance):
                 dict = {}
