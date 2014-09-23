@@ -13,11 +13,11 @@
         <customObject id="-3" userLabel="Application"/>
         <menu title="Main Menu" systemMenu="main" id="29" userLabel="Main Menu">
             <items>
-                <menuItem title="Active Thumbnails" id="56">
+                <menuItem title="Selfspy Reviewer" id="56">
                     <modifierMask key="keyEquivalentModifierMask"/>
-                    <menu key="submenu" title="Active Thumbnails" systemMenu="apple" id="57">
+                    <menu key="submenu" title="Selfspy Reviewer" systemMenu="apple" id="57">
                         <items>
-                            <menuItem title="Quit ActiveThumbnails" keyEquivalent="q" id="136">
+                            <menuItem title="Quit Selfspy Reviewer" keyEquivalent="q" id="136">
                                 <connections>
                                     <action selector="terminate:" target="-2" id="448"/>
                                 </connections>
