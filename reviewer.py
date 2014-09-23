@@ -501,7 +501,9 @@ class ReviewController(NSWindowController):
         self.session = self.session_maker()
         self.populateSamplesWithDebrief(self, self.session)
         self.populateSamplesWithRandom(self)
+        print "Made past selecting samples"
         random.shuffle(self.samples)
+
 
         self.loadFirstExperience(self)
 
@@ -529,15 +531,14 @@ class ReviewController(NSWindowController):
 
         for i in range(even_length):
             l = session.query(Debrief).filter(Debrief.experience_id == q[i].experience_id)
-            u = session.query(Debrief, Experience).join(
-                Experience, Experience.id==Debrief.experience_id).filter(Debrief.id == l[-1].id)
+            u = session.query(Debrief, Experience).join(Experience, Experience.id==Debrief.experience_id).filter(Debrief.id == l[-1].id)
             dict = {}
             dict['experience_id'] = u[0].Experience.id
             dict['debrief_id'] = u[0].Debrief.id
             dict['screenshot'] = u[0].Experience.screenshot.split('/')[-1]
             dict['debriefed'] = True
             dict['snippet'] = bool(i % 2)
-            self.samples.append(NSDictionary.dictionaryWithDictionary_(dict))
+            self.samples.append(dict)
 
     def populateSamplesWithRandom(self):
         self.images = os.listdir(os.path.join(self.datadrive, "screenshots"))
@@ -572,7 +573,7 @@ class ReviewController(NSWindowController):
                 dict['screenshot'] = img
                 dict['debriefed'] = False
                 dict['snippet'] = bool(items_to_get % 2)
-                self.samples.append(NSDictionary.dictionaryWithDictionary_(dict))
+                self.samples.append(dict)
                 items_to_get -= 1
 
     def lookupDatadrive_(self, namefilter=""):
@@ -669,7 +670,7 @@ class ReviewController(NSWindowController):
             "\"S\" to start the animation. The animation will take a few seconds to load.")
         self.reviewController.speedLabel.setHidden_(False)
         self.reviewController.progressLabel.setStringValue_(
-            "Sample " + str(self.reviewControllercurrentSample + 1) + '/' + str(len(self.reviewController.samples)) )
+            "Sample " + str(self.reviewController.currentSample + 1) + '/' + str(len(self.reviewController.samples)) )
         if(self.speedTesting):
             self.reviewController.speedLabel.setStringValue_(
                 "Speed " + str(self.reviewController.speedIndex + 1) + '/' + str(len(self.speeds)) )
